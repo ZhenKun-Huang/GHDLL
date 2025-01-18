@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时数据大屏</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <link href="//unpkg.com/layui@2.9.21/dist/css/layui.css" rel="stylesheet">
+<script src="//unpkg.com/layui@2.9.21/dist/layui.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+        .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .timestamp {
+            text-align: right;
+            color: #888;
+            margin-top: 20px;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .update {
+            animation: pulse 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; margin-bottom: 40px;">实时数据监控</h1>
+    <div class="dashboard">
+        <div class="card">
+            <h2 id="biao" >销售额</h2>
+            <div id="sales" class="value">0</div>
+            <div>实时销售金额 (元)</div>
+        </div>
+        <div class="card">
+            <h2>访问量</h2>
+            <div id="visitors" class="value">0</div>
+            <div>当前访问人数</div>
+        </div>
+        <div class="card">
+            <h2 id="bt">订单数</h2>
+            <div id="orders" class="value">0</div>
+            <div>实时订单统计</div>
+        </div>
+    </div>
+    <div class="container-fluid m-2 text-center">
+  <button onclick="btn1()" id="btn1" type="button" class="layui-btn layui-btn-primary layui-btn-radius"><i class="bi bi-lightbulb-fill" >开</i></button>
+</div>
+        <div class="container-fluid m-2 text-center">
+  <button onclick="btn0()" id="btn0" type="button" class="layui-btn layui-btn-primary layui-btn-radius"><i class="bi bi-lightbulb-fill" >关</i></button>
+</div>
+    <div class="timestamp" id="timestamp">最后更新时间: --:--:--</div>
+
+    <script>
+let btnn1='1'
+let btnn0='0'
+function $(id){ return document.getElementById(id); }
+
+        const socket = io();
+
+
+
+
+        // 更新数据的函数
+        function updateValue(elementId, value) {
+            const element = document.getElementById(elementId);
+            element.textContent = value;
+            element.classList.remove('update');
+            void element.offsetWidth; // 触发重绘
+            element.classList.add('update');
+        }
+        // 监听数据更新事件
+        socket.on('update_data', function(data) {
+            updateValue('sales', data.sales);
+            if(data.sales=='1'){
+            $("biao").style.color="#2b91af";
+            $("biao").innerText="收到为1";
+        }else if(data.sales=='0'){
+            $("biao").style.color="#0C480C";
+                $("biao").innerText="收到为0";
+                }
+            updateValue('visitors', data.visitors);
+            updateValue('orders', data.orders);
+                        if(data.orders=='1'){
+            $("bt").style.color="#2b91af";
+            $("bt").innerText="收到为开";
+        }else if(data.orders=='0'){
+            $("bt").style.color="#0C480C";
+                $("bt").innerText="收到为关";
+                }
+            document.getElementById('timestamp').textContent = '最后更新时间: ' + data.timestamp;
+
+        });
+
+function btn1() {
+    socket.emit('btnn',btnn1)
+}
+function btn0() {
+    socket.emit('btnn',btnn0)
+}
+
+
+    </script>
+</body>
+</html>
+
+
+
